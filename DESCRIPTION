@@ -1,0 +1,24 @@
+Package: simpleSDM
+Title: Yet Another Species Distribution Modelling Package (Chachita Agressor Edition).
+Version: 0.0.0.9000
+Authors@R: 
+    person("PaleoLab", "Modelling Group", , "mrivaden@gmail.com", role = c("aut", "cre"),
+                  comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Runs correlational SDMs with minimal steps
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    blockCV,
+    ENMeval,
+    modEvA,
+    PresenceAbsence,
+    SDMtune,
+    sp,
+    terra,
+    usdm
+Depends: 
+    R (>= 2.10)
+LazyData: true
