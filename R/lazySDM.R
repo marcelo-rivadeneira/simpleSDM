@@ -101,14 +101,16 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   mess.p2=modEvA::MESS(V = totuneo@data[totuneo@pa==1,], P = messy.stck2,verbosity=0)
   mess2=sum(ifelse(mess.p2$TOTAL<0,1,0))/nrow(mess.p2)
 
+  #target area
+  target1=crop(stck1, maskedbuf)
+  target2=crop(stck2, maskedbuf)
 
   ## Predicted distribution in the target area for present and future scenarios
-  hab.stck1=predict(randfo.model, data = stck1)
+  hab.stck1=predict(randfo.model, data = target1)
   hab.stck1[hab.stck1>av.thr]=1;hab.stck1[hab.stck1<1]=0
 
-  hab.stck2=predict(randfo.model, data = stck2)
+  hab.stck2=predict(randfo.model, data = target2)
   hab.stck2[hab.stck2>av.thr]=1;hab.stck2[hab.stck2<1]=0
-
 
   ## Predicted area of occupancy (AOO) for each scenario
   aoo.stck1=global(cellSize(hab.stck1,unit="km")*hab.stck1, "sum",na.rm=T)$sum
