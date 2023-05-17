@@ -13,7 +13,6 @@
 #'      occupancy.time2: raster of estimated habitability for time 2
 #' @import terra
 #' @import sp
-#' @import blockCV
 #' @import SDMtune
 #' @import ENMeval
 #' @import usdm
@@ -42,10 +41,6 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   bg_dat=crds(bg_dat)
   pr_dat=data.frame(x,y)
   puntos=rbind(pr_dat,bg_dat)
-
-  # Autocorrelation range of environmental variables
-  sac=cv_spatial_autocor(crop(stck1,maskedbuf),num_sample=1000,progress=T,plot=F)
-  msac=median(sac$range_table$range)/1000
 
   ## Prepare the tunning
   totuneo=prepareSWD(species="bla",p = pr_dat,a = bg_dat, env = stck1)
@@ -79,10 +74,7 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   # variable importance
   impset=data.frame(varname=names(stck1))
   impset$numname=1:nrow(impset)
-
   vimp=SDMtune::varImp(randfo.model,permut=10)
-  #vimp$numname=impset$numname[match(vimp$Variable,impset$varname)]
-  #vimp=vimp[order(vimp$numname),]
 
   # temporal collinearity shift between predictors
   messy.stck1=data.frame(totuneo@data)
@@ -118,19 +110,19 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   hab.stck2[hab.stck2>av.thr]=1;hab.stck2[hab.stck2<1]=0
 
 
-  ## Predicted area of occupancy (AOO) in the Southern Ocean for each scenario
+  ## Predicted area of occupancy (AOO) for each scenario
   aoo.stck1=global(cellSize(hab.stck1,unit="km")*hab.stck1, "sum",na.rm=T)$sum
   aoo.stck2=global(cellSize(hab.stck2,unit="km")*hab.stck2, "sum",na.rm=T)$sum
 
 
-  outta=data.frame(species=dato$species[1], nobs=nrow(pr_dat), buff,auc.test=randfo.auc.test,
-                   topvarimp=vimp$Variable[1],topimp=vimp$Permutation_importance[1],msac,
+  outta=data.frame(pres=nrow(pr_dat), abs=nrow(bg_dat),buff,auc.test=randfo.auc.test,
+                   topvarimp=vimp$Variable[1],topimp=vimp$Permutation_importance[1],
                    v.vif1,l.vif1,v.vif2,l.vif1, cor.present.stck1,
                    mess1, mess2, aoo.t1=aoo.stck1,aoo.t2=aoo.stck2)
   outta=data.frame(t(outta))
 
-  salida=list(outta,sac,hab.stck1,hab.stck2,maskedbuf,coords)
-  names(salida)=c("summary","spatial.autocorrelation","occupancy.time1","occupancy.time2","target.area","coords")
+  salida=list(outta,maskedbuf,hab.stck1,hab.stck2)
+  names(salida)=c("summary","target.area","occupancy.time1","occupancy.time2")
   return(salida)
   options(warn=0)
 }
