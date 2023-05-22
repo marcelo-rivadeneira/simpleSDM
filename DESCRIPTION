@@ -1,9 +1,10 @@
 Package: simpleSDM
-Title: Yet Another Species Distribution Modelling Package (Chachita Agressor Edition).
-Version: 0.0.0.9000
-Authors@R: 
-    person("PaleoLab", "Modelling Group", , "mrivaden@gmail.com", role = c("aut", "cre"),
-                  comment = c(ORCID = "YOUR-ORCID-ID"))
+Title: Yet Another Species Distribution Modelling Package (Chachita Agressor Edition)
+Version: 0.9
+Authors@R: c(person("Marcelo", "Rivadeneira", role = c("aut", "cre"), email="mrivaden@gmail.com"),
+             person("Jaime","Villafaña",role="aut"),
+             person("Yusse","Hernández-Mora",role="aut"),
+             person("Héctor","Ramos-Rojas",role="aut"))
 Description: Runs correlational SDMs with minimal steps
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
@@ -22,3 +23,4 @@ Imports:
 Depends: 
     R (>= 2.10)
 LazyData: true
+URL: hhttps://github.com/marcelo-rivadeneira/simpleSDM

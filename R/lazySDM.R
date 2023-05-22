@@ -21,7 +21,12 @@
 #' @export
 #'
 #' @examples
-#' lazySDM(whiteshark,buff=100,stck1,stck2)
+#' data(whiteshark)
+#' cmip1=terra::rast(system.file("extdata/SSP1_2.6_1985_2014.tif", package="simpleSDM"))
+#' cmip2=terra::rast(system.file("extdata/SSP1_2.6_2070_2099.tif", package="simpleSDM"))
+#'
+#' out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
+#' out$summary
 #
 lazySDM=function(dato,buff=500,stck1,stck2)
 {
@@ -71,11 +76,6 @@ lazySDM=function(dato,buff=500,stck1,stck2)
                avg.prob=rf.predicted)
   av.thr=optimal.thresholds(umbral)[3,2]
 
-  # variable importance
-  impset=data.frame(varname=names(stck1))
-  impset$numname=1:nrow(impset)
-  vimp=SDMtune::varImp(randfo.model,permut=10)
-
   # temporal collinearity shift between predictors
   messy.stck1=data.frame(totuneo@data)
   messy.stck2=terra::extract(x=stck2,y=vect(spatcoord,crs="+proj=longlat +datum=WGS84"),ID=F)
@@ -86,13 +86,10 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   # VIF of predictors
   vif1=vif(messy.stck1)
   vif2=vif(messy.stck2)
-
-  v.vif1=vif1$Variables[which(vif1$VIF==max(vif1$VIF))]
-  l.vif1=vif1$VIF[which(vif1$VIF==max(vif1$VIF))]
-
-  v.vif2=vif2$Variables[which(vif2$VIF==max(vif2$VIF))]
-  l.vif2=vif2$VIF[which(vif2$VIF==max(vif2$VIF))]
-
+  VIFvar.time1=vif1$Variables[which(vif1$VIF==max(vif1$VIF))]
+  VIFvalue.time1=vif1$VIF[which(vif1$VIF==max(vif1$VIF))]
+  VIFvar.time2=vif2$Variables[which(vif2$VIF==max(vif2$VIF))]
+  VIFvalue.time2=vif2$VIF[which(vif2$VIF==max(vif2$VIF))]
 
   #MESS
   mess.p1=modEvA::MESS(V = totuneo@data[totuneo@pa==1,], P = totuneo@data[totuneo@pa==0,],verbosity=0)
@@ -102,29 +99,31 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   mess2=sum(ifelse(mess.p2$TOTAL<0,1,0))/nrow(mess.p2)
 
   #target area
-  target1=crop(stck1, maskedbuf)
-  target2=crop(stck2, maskedbuf)
+  target1=crop(stck1, maskedbuf,mask=T)
+  target2=crop(stck2, maskedbuf,mask=T)
 
   ## Predicted distribution in the target area for present and future scenarios
   hab.stck1=predict(randfo.model, data = target1)
+  hab.prob1=hab.stck1
   hab.stck1[hab.stck1>av.thr]=1;hab.stck1[hab.stck1<1]=0
 
   hab.stck2=predict(randfo.model, data = target2)
+  hab.prob2=hab.stck2
   hab.stck2[hab.stck2>av.thr]=1;hab.stck2[hab.stck2<1]=0
 
   ## Predicted area of occupancy (AOO) for each scenario
-  aoo.stck1=global(cellSize(hab.stck1,unit="km")*hab.stck1, "sum",na.rm=T)$sum
-  aoo.stck2=global(cellSize(hab.stck2,unit="km")*hab.stck2, "sum",na.rm=T)$sum
+  aoo.stck1=round(global(cellSize(hab.stck1,unit="km")*hab.stck1, "sum",na.rm=T)$sum,1)
+  aoo.stck2=round(global(cellSize(hab.stck2,unit="km")*hab.stck2, "sum",na.rm=T)$sum,1)
 
-
+  ## Output summary
   outta=data.frame(pres=nrow(pr_dat), abs=nrow(bg_dat),buff,auc.test=randfo.auc.test,
-                   topvarimp=vimp$Variable[1],topimp=vimp$Permutation_importance[1],
-                   v.vif1,l.vif1,v.vif2,l.vif1, cor.present.stck1,
+                   VIFvar.time1,VIFvalue.time2,VIFvar.time2,VIFvalue.time2, cor.present.stck1,
                    mess1, mess2, aoo.t1=aoo.stck1,aoo.t2=aoo.stck2)
   outta=data.frame(t(outta))
 
-  salida=list(outta,maskedbuf,hab.stck1,hab.stck2)
-  names(salida)=c("summary","target.area","occupancy.time1","occupancy.time2")
+  salida=list(outta,maskedbuf,hab.stck1,hab.stck2,hab.prob1,hab.prob2)
+  names(salida)=c("summary","target.area","occupancy.time1","occupancy.time2",
+                  "prob.time1","prob.time2")
   return(salida)
   options(warn=0)
 }

@@ -26,5 +26,10 @@ occupancy.time2: raster of estimated habitability for time 2
 Black-box correlational SDM, with minimum specification steps. Calibrates SDM in time1 and projects onto time2.
 }
 \examples{
-lazySDM(whiteshark,buff=100,stck1,stck2)
+data(whiteshark)
+cmip1=terra::rast(system.file("extdata/SSP1_2.6_1985_2014.tif", package="simpleSDM"))
+cmip2=terra::rast(system.file("extdata/SSP1_2.6_2070_2099.tif", package="simpleSDM"))
+
+out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
+out$summary
 }
