@@ -18,7 +18,7 @@
 #' cmip1=terra::rast(system.file("extdata/SSP1_2.6_1985_2014.tif", package="simpleSDM"))
 #' cmip2=terra::rast(system.file("extdata/SSP1_2.6_2070_2099.tif", package="simpleSDM"))
 #'
-#' env.pca=stack_pca(stack1,stack2,expvar=0.95)
+#' env.pca=stack_pca(cmip1,cmip2,expvar=0.95)
 #' plot(env.pca$rasters1)
 #'
 stack_pca=function (env1, env2,expvar=1)

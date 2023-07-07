@@ -32,4 +32,8 @@ cmip2=terra::rast(system.file("extdata/SSP1_2.6_2070_2099.tif", package="simpleS
 
 out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
 out$summary
+sub.cmip1=cmip1[[c(4,5)]] # get only salinity and SST
+sub.cmip2=cmip2[[c(4,5)]] # get only salinity and SST
+out2=lazySDM(whiteshark,buff=500,sub.cmip1,sub.cmip2)
+out2$summary
 }

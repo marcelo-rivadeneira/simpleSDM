@@ -33,7 +33,7 @@ out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
 # Data re-analyzed from Chaudhary et al. 2021 (https://doi.org/10.1073/pnas.2015094118)
 obis=terra::rast(system.file("extdata/OBIS_sampling_effort.tif", package="simpleSDM"))
 pal1=colorRampPalette(c("blue", "yellow", "red")) # a simple color palette
-effortbias=sampling_diagnostic(x=out,s=obis,w=5,pal=pal1)
+effortbias=sampling_diagnostic(x=out,s=log10(obis+1),w=5,pal=pal1)
 
 # An histogram showing the distribution of local correlation values
 hist(effortbias)

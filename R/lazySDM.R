@@ -27,7 +27,12 @@
 #'
 #' out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
 #' out$summary
+#' sub.cmip1=cmip1[[c(4,5)]] # get only salinity and SST
+#' sub.cmip2=cmip2[[c(4,5)]] # get only salinity and SST
+#' out2=lazySDM(whiteshark,buff=500,sub.cmip1,sub.cmip2)
+#' out2$summary
 #
+
 lazySDM=function(dato,buff=500,stck1,stck2)
 {
   options(warn=-1)
@@ -39,7 +44,7 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   buf=vect(buffer(coords,(buff*1e3))) # default, 500 km buffer
   mask=stck1[[1]]  # Create a mask with target resolution and extent from climate layers
   values(mask)[!is.na(values(mask))]=1
-  maskedbuf=mask(mask,buf) # Set all raster cells outside the buffer to NA.
+  maskedbuf=crop(mask,buf,mask=T) # Set all raster cells outside the buffer to NA.
   ext.coods=intersect(ext(coords), ext(maskedbuf))
   maskedbuf2=crop(maskedbuf, ext.coods)
   bg_dat=spatSample(maskedbuf2,size=length(x),na.rm=T,as.points=T)

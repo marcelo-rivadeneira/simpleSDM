@@ -23,7 +23,7 @@
 #' obis=terra::rast(system.file("extdata/OBIS_sampling_effort.tif", package="simpleSDM"))
 #' pal1=colorRampPalette(c("blue", "yellow", "red")) # a simple color palette
 
-#' effortbias=sampling_diagnostic(x=out,s=obis,w=5,pal=pal1)
+#' effortbias=sampling_diagnostic(x=out,s=log10(obis+1),w=5,pal=pal1)
 #'
 #' # An histogram showing the distribution of local correlation values
 #' hist(effortbias)
