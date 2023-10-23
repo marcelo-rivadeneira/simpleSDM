@@ -4,7 +4,7 @@
 \alias{lazySDM}
 \title{LazySDM}
 \usage{
-lazySDM(dato, buff = 500, stck1, stck2)
+lazySDM(dato, buff = 500, stck1, stck2, max.points = 500, nperm = 100)
 }
 \arguments{
 \item{dato}{data.frame containing geographic coordinates of a species presence}
@@ -14,6 +14,10 @@ lazySDM(dato, buff = 500, stck1, stck2)
 \item{stck1}{Raster stack (terra class) with environmental variables for time 1}
 
 \item{stck2}{Raster stack (terra class) with environmental variables for time 2}
+
+\item{max.points}{Maximum number of presence points allowed (default = 500)}
+
+\item{nperm}{Number of permutations to estimate variable importance (default = 500)}
 }
 \value{
 Four objects
@@ -30,7 +34,7 @@ data(whiteshark)
 cmip1=terra::rast(system.file("extdata/SSP1_2.6_1985_2014.tif", package="simpleSDM"))
 cmip2=terra::rast(system.file("extdata/SSP1_2.6_2070_2099.tif", package="simpleSDM"))
 
-out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
+out=lazySDM(whiteshark,buff=500,cmip1,cmip2,max.points=500,nperm=100)
 out$summary
 sub.cmip1=cmip1[[c(4,5)]] # get only salinity and SST
 sub.cmip2=cmip2[[c(4,5)]] # get only salinity and SST

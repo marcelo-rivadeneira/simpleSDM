@@ -5,6 +5,8 @@
 #' @param buff geographic buffer (in km) where to generate pseudo-absence. It is also the area where the model is tested.
 #' @param stck1 Raster stack (terra class) with environmental variables for time 1
 #' @param stck2 Raster stack (terra class) with environmental variables for time 2
+#' @param max.points Maximum number of presence points allowed (default = 500)
+#' @param nperm Number of permutations to estimate variable importance (default = 500)
 #'
 #' @return Four objects
 #'      summary: Main diagnostic statistics
@@ -25,7 +27,7 @@
 #' cmip1=terra::rast(system.file("extdata/SSP1_2.6_1985_2014.tif", package="simpleSDM"))
 #' cmip2=terra::rast(system.file("extdata/SSP1_2.6_2070_2099.tif", package="simpleSDM"))
 #'
-#' out=lazySDM(whiteshark,buff=500,cmip1,cmip2)
+#' out=lazySDM(whiteshark,buff=500,cmip1,cmip2,max.points=500,nperm=100)
 #' out$summary
 #' sub.cmip1=cmip1[[c(4,5)]] # get only salinity and SST
 #' sub.cmip2=cmip2[[c(4,5)]] # get only salinity and SST
@@ -33,7 +35,7 @@
 #' out2$summary
 #
 
-lazySDM=function(dato,buff=500,stck1,stck2)
+lazySDM=function(dato,buff=500,stck1,stck2,max.points=500,nperm=100)
 {
   options(warn=-1)
   x=dato$x
@@ -41,15 +43,19 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   coords=data.frame(x,y)
   coordinates(coords)= ~x + y
   crs(coords)="+proj=longlat +datum=WGS84"
+  if (length(coords) > max.points){
+    coords=sample(coords,max.points)
+  }
   buf=vect(buffer(coords,(buff*1e3))) # default, 500 km buffer
   mask=stck1[[1]]  # Create a mask with target resolution and extent from climate layers
   values(mask)[!is.na(values(mask))]=1
   maskedbuf=crop(mask,buf,mask=T) # Set all raster cells outside the buffer to NA.
   ext.coods=intersect(ext(coords), ext(maskedbuf))
   maskedbuf2=crop(maskedbuf, ext.coods)
-  bg_dat=spatSample(maskedbuf2,size=length(x),na.rm=T,as.points=T)
+  bg_dat=spatSample(maskedbuf2,size=length(coords),na.rm=T,as.points=T)
   bg_dat=crds(bg_dat)
-  pr_dat=data.frame(x,y)
+  co=data.frame(geom(coords))
+  pr_dat=data.frame(x=co$x,y=co$y)
   puntos=rbind(pr_dat,bg_dat)
 
   ## Prepare the tunning
@@ -86,7 +92,7 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   messy.stck2=terra::extract(x=stck2,y=vect(spatcoord,crs="+proj=longlat +datum=WGS84"),ID=F)
   vif.stck1=stats::cor(messy.stck1)
   vif.stck2=cor(messy.stck2)
-  cor.present.stck1=cor(as.dist(vif.stck1),as.dist(vif.stck2))
+  col.shift=mean(abs(as.dist(vif.stck1)-as.dist(vif.stck2)))
 
   # VIF of predictors
   vif1=vif(messy.stck1)
@@ -95,6 +101,12 @@ lazySDM=function(dato,buff=500,stck1,stck2)
   VIFvalue.time1=vif1$VIF[which(vif1$VIF==max(vif1$VIF))]
   VIFvar.time2=vif2$Variables[which(vif2$VIF==max(vif2$VIF))]
   VIFvalue.time2=vif2$VIF[which(vif2$VIF==max(vif2$VIF))]
+
+  # Variable importance
+  vi=SDMtune::varImp(randfo.model,permut = nperm)
+  vi=vi[order(vi$Variable),]
+  iv1=data.frame(t(vi[order(vi$Variable),2]))
+  names(iv1)=vi[order(vi$Variable),1]
 
   #MESS
   mess.p1=modEvA::MESS(V = totuneo@data[totuneo@pa==1,], P = totuneo@data[totuneo@pa==0,],verbosity=0)
@@ -122,7 +134,7 @@ lazySDM=function(dato,buff=500,stck1,stck2)
 
   ## Output summary
   outta=data.frame(pres=nrow(pr_dat), abs=nrow(bg_dat),buff,auc.test=randfo.auc.test,
-                   VIFvar.time1,VIFvalue.time2,VIFvar.time2,VIFvalue.time2, cor.present.stck1,
+                   VIFvar.time1,VIFvalue.time2,iv1, col.shift,
                    mess1, mess2, aoo.t1=aoo.stck1,aoo.t2=aoo.stck2)
   outta=data.frame(t(outta))
 
