@@ -75,7 +75,7 @@ lazySDM=function(dato,buff=500,stck1,stck2,max.points=500,nperm=100)
   names(block_folds_formatted)=c("train","test")
 
   # Cross-validated trained RF model with hyperparameter tunning
-  randfo.model=train("RF", data = totuneo, folds = block_folds_formatted,verbose=F)
+  randfo.model=train("Maxnet", data = totuneo, folds = block_folds_formatted,verbose=F)
   randfo.auc.test=SDMtune::auc(randfo.model,test=T)
 
 
